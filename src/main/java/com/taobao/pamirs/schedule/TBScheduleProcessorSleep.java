@@ -155,6 +155,7 @@ public class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable 
 			List<TaskItemDefine> taskItems = this.scheduleManager.getCurrentScheduleTaskItemList();
 			// 根据队列信息查询需要调度的数据，然后增加到任务列表中
 			if (taskItems.size() > 0) {
+				//交给处理类bean判断哪个任务是需要处理的
 				List<T> tmpList = this.taskDealBean.selectTasks(
 						taskTypeInfo.getTaskParameter(),
 						scheduleManager.getScheduleServer().getOwnSign(),
@@ -162,7 +163,6 @@ public class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable 
 						taskTypeInfo.getFetchDataNumber());
 				scheduleManager.getScheduleServer().setLastFetchDataTime(new Timestamp(ScheduleUtil.getCurrentTimeMillis()));
 				if(tmpList != null){
-					//testGit
 				   this.taskList.addAll(tmpList);
 				}
 			} else {
@@ -258,6 +258,7 @@ public class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable 
 				   logger.trace(Thread.currentThread().getName() +"：当前运行线程数量:" +this.m_lockObject.count());
 			    }
 				//是否可以休眠（最后一个线程不能休眠）
+				//使用m_lockObject休眠
 				if (this.m_lockObject.realseThreadButNotLast() == false)
 				//我是最后一个线程了
 				{
