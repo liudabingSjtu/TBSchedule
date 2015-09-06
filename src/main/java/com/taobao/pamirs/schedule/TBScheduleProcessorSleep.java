@@ -162,6 +162,7 @@ public class TBScheduleProcessorSleep<T> implements IScheduleProcessor,Runnable 
 						taskTypeInfo.getFetchDataNumber());
 				scheduleManager.getScheduleServer().setLastFetchDataTime(new Timestamp(ScheduleUtil.getCurrentTimeMillis()));
 				if(tmpList != null){
+					//testGit
 				   this.taskList.addAll(tmpList);
 				}
 			} else {
