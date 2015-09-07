@@ -46,6 +46,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 						}
 						//log.error("isRuntimeInfoInitial = " + isRuntimeInfoInitial);
 						initialRunningInfo();
+						//在dataCenter初始化之后再进行初始化
 						isRuntimeInfoInitial = scheduleCenter.isInitialRunningInfoSucuss(
 								currenScheduleServer.getBaseTaskType(),
 								currenScheduleServer.getOwnSign());
@@ -93,6 +94,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * 如果发现本次更新的时间如果已经超过了，服务器死亡的心跳周期，则不能在向服务器更新信息。
 	 * 而应该当作新的服务器，进行重新注册。
 	 * @throws Exception
+	 *
 	 */
 	public void refreshScheduleServerInfo() throws Exception {
 		try{
@@ -145,6 +147,8 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 * 3、重新计算任务分配
 	 * 4、更新任务状态的版本号【乐观锁】
 	 * 5、根系任务队列的分配信息
+	 * 6、leader每个心跳重新分配任务？？
+	 *
 	 * @throws Exception
 	 */
 	public void assignScheduleTask() throws Exception {
@@ -193,7 +197,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 			throw new RuntimeException(e);
 		}
 	}
-
+	//manager初始化时调用一次
 	protected List<TaskItemDefine> getCurrentScheduleTaskItemListNow() throws Exception {
 		//获取最新的版本号
 		this.lastFetchVersion = this.scheduleCenter.getReloadTaskItemFlag(this.currenScheduleServer.getTaskType());
@@ -221,6 +225,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 
 			return this.currentTaskItemList;
 		}catch(Throwable e){
+			//失败以后，将拉取任务版本号设为-1,下次重新拉任务
 			this.lastFetchVersion = -1; //必须把把版本号设置小，避免任务加载失败
 			if(e instanceof Exception ){
 				throw (Exception)e;
