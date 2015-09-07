@@ -378,6 +378,9 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 	}
 
 	@Override
+	/**
+	 * 供manager调用重新装载任务
+	 */
 	public List<TaskItemDefine> reloadDealTaskItem(String taskType, String uuid)
 			throws Exception {
 		 String baseTaskType = TBScheduleManager.splitBaseTaskTypeFromTaskType(taskType);
@@ -388,6 +391,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 
 		 List<TaskItemDefine> result = new ArrayList<TaskItemDefine>();
 		 for(String name:taskItems){
+			 //Zk+name 就是任务队列名，任务队列名目录下有对个子目录：目前分配的manager，请求次队列的manager等等
 			 //当前任务分配给哪个server了
 			byte[] value = this.getZooKeeper().getData(zkPath + "/" + name + "/cur_server",false,null);
 			 //这个任务是否分配给当前的Manager
@@ -585,6 +589,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		long tmpNo = -1;
 		String leader = null;
     	for(String server:serverList){
+			//server 名称组成应该是XXXXXX$131231231312313,选择数字最大的作为leader
     		tmpNo =Long.parseLong( server.substring(server.lastIndexOf("$")+1));
     		if(no > tmpNo){
     			no = tmpNo;
@@ -630,6 +635,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			}else{
 				this.getZooKeeper().setData(zkPath + "/" + name + "/req_server",serverList.get(point).getBytes(),-1);
 			}
+			 //分配任务的逻辑，平均分配给list中的每个server从头到位的分配任务
 			point = (point  + 1) % serverList.size();
 		 }	
 		 

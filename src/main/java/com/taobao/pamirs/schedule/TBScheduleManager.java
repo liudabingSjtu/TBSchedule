@@ -115,8 +115,10 @@ public abstract class TBScheduleManager {
 		}
 		this.currenScheduleServer = ScheduleServer.createScheduleServer(baseTaskType,ownSign,this.taskTypeInfo.getThreadNumber(),managerPort,jxmUrl);
 		this.currenScheduleServer.setManagerFactoryUUID(this.factory.getUuid());
+		//向scheduleCenter注册
 		scheduleCenter.registerScheduleServer(this.currenScheduleServer);
 		this.mBeanName = "pamirs:name=" + "schedule.ServerMananger." +this.currenScheduleServer.getUuid();
+		//心跳进程
 		this.heartBeatTimer = new Timer(this.currenScheduleServer.getTaskType() +"-" + this.currentSerialNumber +"-HeartBeat");
 		this.heartBeatTimer.schedule(new HeartBeatTimerTask(this),
 				new java.sql.Date(ScheduleUtil.getCurrentTimeMillis() + 500),
