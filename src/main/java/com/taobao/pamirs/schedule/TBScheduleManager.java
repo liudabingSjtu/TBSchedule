@@ -190,6 +190,7 @@ public abstract class TBScheduleManager {
 				this.currenScheduleServer.setDealInfoDesc(startErrorInfo);
 			}
 			if(	this.scheduleCenter.refreshScheduleServer(this.currenScheduleServer) == false){
+				//注册信息已经被干掉了，刷新失败，重新注册server
 				//更新信息失败，清除内存数据后重新注册
 				this.clearMemoInfo();
 				this.scheduleCenter.registerScheduleServer(this.currenScheduleServer);
@@ -338,7 +339,8 @@ public abstract class TBScheduleManager {
 	}
 
 	/**
-	 * 只应该在Processor中调用
+	 * 只应该在Processor中调用，当server被设置为停止以后，processor完成全部手头任务，最后一个processor调用此方法注销ScheduleServer，
+	 * 还有一种是心跳失败时调用的
 	 * @throws Exception
 	 */
 	protected void unRegisterScheduleServer() throws Exception{

@@ -676,7 +676,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		this.getZooKeeper().setData(realPath,valueString.getBytes(),-1);
 		server.setRegister(true);
 	}
-
+	//Ïòzookeeper×¢²áserverĞÅÏ¢
 	public boolean refreshScheduleServer(ScheduleServer server) throws Exception {
 		Timestamp heartBeatTime = new Timestamp(ScheduleUtil
 				.getCurrentTimeMillis());
