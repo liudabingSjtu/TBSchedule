@@ -98,6 +98,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 	 */
 	public void refreshScheduleServerInfo() throws Exception {
 		try{
+			//尝试向zookeeper更新自己，如果之前被干掉了，释放无效的数据并重新注册
 			rewriteScheduleInfo();
 			//如果任务信息没有初始化成功，不做任务相关的处理
 			if(this.isRuntimeInfoInitial == false){
@@ -162,9 +163,11 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 			}
 			return;
 		}
-		//设置初始化成功标准，避免在leader转换的时候，新增的线程组初始化失败
+		//设置初始化成功标准，将leader的uuid写在zookeeper中，避免在leader转换的时候，新增的线程组初始化失败，
 		scheduleCenter.setInitialRunningInfoSucuss(this.currenScheduleServer.getBaseTaskType(), this.currenScheduleServer.getTaskType(), this.currenScheduleServer.getUuid());
+		//重新分配任务，将之前分配的任务全部收回
 		scheduleCenter.clearTaskItem(this.currenScheduleServer.getTaskType(), serverList);
+
 		scheduleCenter.assignTaskItem(this.currenScheduleServer.getTaskType(),this.currenScheduleServer.getUuid(), serverList);
 	}
 	/**
@@ -198,6 +201,7 @@ public class TBScheduleManagerStatic extends TBScheduleManager {
 		}
 	}
 	//manager初始化时调用一次
+	//非线程安全？
 	protected List<TaskItemDefine> getCurrentScheduleTaskItemListNow() throws Exception {
 		//获取最新的版本号
 		this.lastFetchVersion = this.scheduleCenter.getReloadTaskItemFlag(this.currenScheduleServer.getTaskType());

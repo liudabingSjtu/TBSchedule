@@ -450,6 +450,9 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		}
 	}
 	@Override
+	//将过期的任务从zookeeper目录中清除，所以任务重新分配。不会继续分配任务给不在列表中的server，
+	// 死掉的server自己清理自己的队列，恢复后重新注册自己，通知新增server
+	//leader在下个心跳周期重新分配任务
 	public int clearExpireScheduleServer(String taskType,long expireTime) throws Exception {
 		 int result =0;
 		 String baseTaskType = TBScheduleManager.splitBaseTaskTypeFromTaskType(taskType);
@@ -464,10 +467,13 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 }
 		for (String name : this.getZooKeeper().getChildren(zkPath, false)) {
 			try {
+				//比较心跳过期时间
 				Stat stat = this.getZooKeeper().exists(zkPath + "/" + name,false);
+				//server死亡
 				if (getSystemTime() - stat.getMtime() > expireTime) {
 					ZKTools.deleteTree(this.getZooKeeper(), zkPath + "/" + name);
 					result++;
+
 				}
 			} catch (Exception e) {
 				// 当有多台服务器时，存在并发清理的可能，忽略异常
@@ -505,6 +511,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		 }
 		 return result;
 	}
+	//查找可以处理某种任务类型的server(没考虑心跳)
 	public List<String> loadScheduleServerNames(String taskType)throws Exception{
 		 String baseTaskType = TBScheduleManager.splitBaseTaskTypeFromTaskType(taskType);
 		 String zkPath = this.PATH_BaseTaskType + "/" + baseTaskType + "/" + taskType + "/" + this.PATH_Server;
@@ -580,7 +587,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			});
 		return result;
 	}	
-	
+	//选举leader server
 	public String getLeader(List<String> serverList){
 		if(serverList == null || serverList.size() ==0){
 			return "";
@@ -638,7 +645,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 			 //分配任务的逻辑，平均分配给list中的每个server从头到位的分配任务
 			point = (point  + 1) % serverList.size();
 		 }	
-		 
+		 //有过任务重分配，则全部server在下个心跳时，重新拉取任务
 		 if(unModifyCount < children.size()){ //设置需要所有的服务器重新装载任务
 			 this.updateReloadTaskItemFlag(taskType);
 		 }
@@ -676,7 +683,7 @@ public class ScheduleDataManager4ZK implements IScheduleDataManager {
 		this.getZooKeeper().setData(realPath,valueString.getBytes(),-1);
 		server.setRegister(true);
 	}
-	//向zookeeper注册server信息
+	//向zookeeper更新心跳信息
 	public boolean refreshScheduleServer(ScheduleServer server) throws Exception {
 		Timestamp heartBeatTime = new Timestamp(ScheduleUtil
 				.getCurrentTimeMillis());
