@@ -341,16 +341,19 @@ public class TBScheduleProcessorNotSleep<T> implements IScheduleProcessor, Runna
 				}
 				// 加载调度任务
 				if (this.isMutilTask == false) {
+					//取任务操作线程安全，通过两个锁，保证同时只有一个线程在取任务
 					executeTask = this.getScheduleTaskId();
 				} else {
 					executeTask = this.getScheduleTaskIdMulti();
 				}
 				if (executeTask == null ) {
+					//manager中已经没有任务时，主动去dataManager取得自己的任务
 					this.loadScheduleData();
 					continue;
 				}
 				
 				try { // 运行相关的程序
+					//正在处理的队列，队列是线程安全的
 					this.runningTaskList.add(executeTask);
 					startTime = ScheduleUtil.getCurrentTimeMillis();
 					sequence = sequence + 1;
